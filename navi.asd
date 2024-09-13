@@ -16,7 +16,6 @@
                "cl-fad"
                "str")
   :components ((:file "package")
-               (:file "utils")
                (:file "style")
                (:file "server")
                (:file "org")
