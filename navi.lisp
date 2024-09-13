@@ -5,7 +5,11 @@
 (defvar *assets* nil)
 (defvar *pages-dirty-p* nil)
 
-(setf spinneret:*html-style* :tree)
+;; These settings are ensuring that we don't mess with spaces when displaying inlined links.
+;; More info: https://github.com/ruricolist/spinneret/issues/37
+(setf spinneret:*html-style* :human)
+(setf spinneret:*suppress-inserted-spaces* t)
+(setf spinneret:*fill-column* 999)
 
 (defclass page ()
   ((path :initarg :path :accessor page-path)
