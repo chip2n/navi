@@ -22,3 +22,6 @@
   (when *handler*
     (clack:stop *handler*)
     (setf *handler* nil)))
+
+(defun running-p ()
+  (not (null *handler*)))

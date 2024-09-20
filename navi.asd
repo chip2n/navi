@@ -18,5 +18,6 @@
   :components ((:file "package")
                (:file "style")
                (:file "server")
+               (:file "socket")
                (:file "org")
                (:file "navi")))

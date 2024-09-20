@@ -1,5 +1,6 @@
 (in-package #:navi)
 
+(defvar *hot-reload-p* nil)
 (defvar *output-dir* (fad:merge-pathnames-as-file (uiop:getcwd) "out/"))
 (defvar *pages* (make-hash-table))
 (defvar *assets* nil)
@@ -19,18 +20,26 @@
 (defmacro define-page (name (&key path) &body body)
   `(add-page ',name ,path ',body (lambda () (spinneret:with-html (:doctype) ,@body))))
 
+(defun should-reload-p ()
+  (and *hot-reload-p* (navi/server:running-p)))
+
 (defun add-page (name path body builder)
   (setf (gethash name *pages*)
         (make-instance 'page
           :path path
           :body body
-          :builder builder)))
+          :builder builder))
+  (when (should-reload-p)
+    (build-pages)))
 
 (defmacro define-tag (name (body attrs-var &rest ll) &body tag)
   `(progn
      (spinneret:deftag ,name (,body ,attrs-var ,@ll) ,@tag)
-     ;;TODO do this only if tree is actually changed
-     (setf *pages-dirty-p* t)))
+     ;; TODO do this only if tree is actually changed
+     (setf *pages-dirty-p* t)
+
+     (when (should-reload-p)
+       (build-pages))))
 
 (defun recompile-page (page)
   (format t "Recompiling page... ~A~%" (page-path page))
@@ -59,11 +68,20 @@
   (navi/style:compile-styles (fad:merge-pathnames-as-file output-dir "style.css"))
 
   (loop for path in *assets*
-        do (uiop:copy-file path (fad:merge-pathnames-as-file output-dir (path:basename path)))))
+        do (uiop:copy-file path (fad:merge-pathnames-as-file output-dir (path:basename path))))
+
+  (when *hot-reload-p*
+    (navi/socket:reload-browser)))
 
 (defun start ()
-  (build-pages)
+  (when *hot-reload-p*
+    (uiop:copy-file (asdf:system-relative-pathname 'navi "socket.js")
+                    (fad:merge-pathnames-as-file *output-dir* "socket.js"))
+    (navi/socket:start))
+  (when *pages-dirty-p*
+    (build-pages))
   (navi/server:start *output-dir*))
 
 (defun stop ()
-  (navi/server:stop))
+  (navi/server:stop)
+  (navi/socket:stop))

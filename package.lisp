@@ -7,7 +7,15 @@
   (:use #:cl)
   (:export
    #:start
-   #:stop))
+   #:stop
+   #:running-p))
+
+(defpackage #:navi/socket
+  (:use #:cl)
+  (:export
+   #:start
+   #:stop
+   #:reload-browser))
 
 (defpackage #:navi/style
   (:use #:cl)
@@ -52,4 +60,5 @@
    #:stop
    #:start
    #:add-page
-   #:*output-dir*))
+   #:*output-dir*
+   #:*hot-reload-p*))
